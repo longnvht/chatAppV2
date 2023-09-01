@@ -60,6 +60,9 @@
     <Reference Include="Costura, Version=3.3.3.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.3.3.3\lib\net40\Costura.dll</HintPath>
     </Reference>
+    <Reference Include="FontAwesome.Sharp, Version=6.3.0.0, Culture=neutral, PublicKeyToken=d16d1e4e568ec10f, processorArchitecture=MSIL">
+      <HintPath>..\packages\FontAwesome.Sharp.6.3.0\lib\net472\FontAwesome.Sharp.dll</HintPath>
+    </Reference>
     <Reference Include="Google.Protobuf, Version=3.21.9.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Protobuf.3.21.9\lib\net45\Google.Protobuf.dll</HintPath>
     </Reference>
@@ -96,6 +99,8 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="RestSharp, Version=100.0.0.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharpSigned.105.2.3\lib\net46\RestSharp.dll</HintPath>
     </Reference>
@@ -251,6 +256,7 @@
     <Reference Include="System.Web.Services.Description, Version=4.9.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Web.Services.Description.4.9.0\lib\net461\System.Web.Services.Description.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -269,19 +275,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\ChatList.cs" />
+    <Compile Include="Models\ChatListModel.cs" />
     <Compile Include="Models\GroupUsersMap.cs" />
-    <Compile Include="Views\Controls\BoxSend.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Views\Controls\BoxSend.Designer.cs">
-      <DependentUpon>BoxSend.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Controls\BoxReceive.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Views\Controls\BoxReceive.Designer.cs">
-      <DependentUpon>BoxReceive.cs</DependentUpon>
+    <Compile Include="Models\MessageItemModel.cs" />
+    <Compile Include="Views\Controls\ArrowButton.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Models\HistoriesChat.cs" />
     <Compile Include="Models\Interfaces\IChatRepository.cs" />
@@ -314,11 +312,36 @@
     <Compile Include="Views\Controls\ChatListItem.Designer.cs">
       <DependentUpon>ChatListItem.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\Controls\DocumentMessageItem.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\Controls\DocumentMessageItem.Designer.cs">
+      <DependentUpon>DocumentMessageItem.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Controls\ImageMessageItem.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\Controls\ImageMessageItem.Designer.cs">
+      <DependentUpon>ImageMessageItem.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\Controls\ListButton.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Views\Controls\ListButton.Designer.cs">
       <DependentUpon>ListButton.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Controls\MessageList.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Views\Controls\MessageList.Designer.cs">
+      <DependentUpon>MessageList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Controls\MessageType.cs" />
+    <Compile Include="Views\Controls\TextMessageItem.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\Controls\TextMessageItem.Designer.cs">
+      <DependentUpon>TextMessageItem.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\Interfaces\IChatView.cs" />
     <Compile Include="Views\Interfaces\ILoginView.cs" />
@@ -328,12 +351,6 @@
     <Compile Include="Views\LoginView.Designer.cs">
       <DependentUpon>LoginView.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Views\Controls\BoxSend.resx">
-      <DependentUpon>BoxSend.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Views\Controls\BoxReceive.resx">
-      <DependentUpon>BoxReceive.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -355,6 +372,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Views\Controls\ListButton.resx">
       <DependentUpon>ListButton.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Views\Controls\TextMessageItem.resx">
+      <DependentUpon>TextMessageItem.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Views\LoginView.resx">
       <DependentUpon>LoginView.cs</DependentUpon>
@@ -396,6 +416,36 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\user_name_24px.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TelegramApp.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Filter Mail.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\filter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AddUser.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\avatar11.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Sent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Attach.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Happy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Create.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.4.0.2\build\Fody.targets" Condition="Exists('..\packages\Fody.4.0.2\build\Fody.targets')" />

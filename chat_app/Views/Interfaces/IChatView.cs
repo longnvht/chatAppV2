@@ -1,7 +1,11 @@
 ﻿using chat_app.Models;
+using chat_app.Presenters;
+using chat_app.Repositorys;
 using Guna.UI2.WinForms;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Windows.Forms;
 
 namespace chat_app.Views.Interfaces
@@ -9,46 +13,27 @@ namespace chat_app.Views.Interfaces
     public interface IChatView
     {
         #region Properties - Fields
-        string strUserLogin { get; set; }
-        string strNameStaff { get; set; }
-        int UserLoginID { get; set; }
-        int ReceiverID { get; set; }
-        int TypeChat { get; set; }
-        int memberID { get; set; }
-        int typeBtnSelect { get; set; }
-        char statusForm { get; set; }
-        Panel pnChat { get; set; }
-        Guna2TextBox txtMessage { get; set; }
-        BindingList<HistoriesChat> lstContent { get; set; }
-        ListBox lsbMembers { get; set; }
-        BindingList<ChatList> listMembers { get; set; }
-        Guna2TextBox txtNameChat { get; set; }
-        Guna2TextBox txtSearchMember { get; set; }
+        ChatListModel CurrentChatList { get; set; }
+        string CurrentMessage { get; set; } 
+        List<Users> MemberGroup { get; set; }
+        ChatPresenter Presenter { set; }
+        string MessageText { get; set; }   
+
         #endregion
 
         #region Events
-        event EventHandler ChatView_Load;
-        event EventHandler btnSend_Click;
-        event EventHandler ChatView_Resize;
-        event EventHandler txtMessage_TextChanged;
-        event EventHandler itemChatList_Click;
-        event EventHandler btnAddMember_Click;
-        event EventHandler btnDeleteMember_Click;
-        event EventHandler btnSelect_Click;
-        event EventHandler btnCancel_Click;
-        event EventHandler txtSearchMember_TextChanged;
-        event EventHandler txtNewChat_Click;
+        event EventHandler ChatItemSelected;
+        event EventHandler AddMessage;
+        event EventHandler AddChatGroup;
+        event EventHandler AddMemberToGroup;
+        event EventHandler RemoveMemberFromGroup;
+
         #endregion
 
         #region Method
-        void Show();
-        //Guna2GradientButton CreateButton(int? iIndex = null);
-        //Guna2TextBox CreateTextBox(string strUserLoginFrom = "", string strContent = "");
-        //void Close();
-        //void SetCheckedButton();
-        void SetStatusForm();
-        void SetDataSourceChatList(BindingSource chatListBidingSource);
-        void SetDataSourceListMembers(BindingSource listMembersBidingSource);
+        void SetMessageListBindingSource(BindingSource mesageSource);
+        void SetChatListBindingSource(BindingSource chatListBidingSource);
+        void SetListMembersBindingSource(BindingSource listMembersBidingSource);
         #endregion
     }
 }

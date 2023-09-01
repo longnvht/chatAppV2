@@ -33,10 +33,10 @@ namespace chat_app
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new ChatView());
-            ConfigUnity.Register();
-            var loginPresenter = ConfigUnity.unityContainer.Resolve<LoginPresenter>();
-            loginPresenter.Run();
+            Application.Run(new ChatView());
+            //ConfigUnity.Register();
+            //var loginPresenter = ConfigUnity.unityContainer.Resolve<LoginPresenter>();
+            //loginPresenter.Run();
         }
     }
 }

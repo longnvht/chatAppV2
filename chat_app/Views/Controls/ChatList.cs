@@ -1,7 +1,13 @@
-﻿using System;
+﻿using chat_app.Models;
+using Guna.UI2.WinForms;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace chat_app.Views.Controls
@@ -9,54 +15,62 @@ namespace chat_app.Views.Controls
     [ComplexBindingProperties("DataSource", "DataMember")]
     public partial class ChatList : UserControl
     {
-        private int scrWidth = SystemInformation.VerticalScrollBarWidth;
-        private string dataMember;
         private BindingSource bindingSource;
+        private int itemWidth;
+        private int itemHeight;
+        private Color _itemBackColor;
+        private Color _itemHoverColor;
+        private ChatListItem _lastClickItem;
 
-
-        // Khai báo một sự kiện để thông báo khi có sự thay đổi trong DataSource hoặc DataMember
-        public event EventHandler DataSourceChanged;
 
         // Khai báo một sự kiện để thông báo khi người dùng nhấn vào một item trong user control
         public event EventHandler ItemClicked;
         public ChatList()
         {
             InitializeComponent();
-            flpChatList.SizeChanged += ChatList_SizeChanged;
+            AssignEvent();
+            
+        }
+
+        private void AssignEvent()
+        {
+            this.Load += ChatList_Load;
+            pnChatList.SizeChanged += ChatList_SizeChanged;
+        }
+
+        private void ChatList_Load(object sender, EventArgs e)
+        {
+            itemWidth = this.Width;
         }
 
         private void ChatList_SizeChanged(object sender, EventArgs e)
         {
-            ChangeItemSize();
+            if(itemWidth != Width)
+            {
+                itemWidth = this.Width;
+                ChangeItemSize();
+            }
         }
 
         private void ChangeItemSize()
         {
 
-            foreach (ChatListItem chatItem in flpChatList.Controls.OfType<ChatListItem>())
+            int btnSize; // Lưu kích thước gốc của pnMenu
+            bool isScrollBarVisible = pnChatList.VerticalScroll.Visible;
+
+            if (isScrollBarVisible)
             {
-                chatItem.Width = flpChatList.Width - 10 - scrWidth;
+                btnSize = itemWidth - SystemInformation.VerticalScrollBarWidth -10;
             }
-        }
-
-        [AttributeProvider(typeof(IListSource))]
-
-        // Lấy hoặc gán giá trị cho thuộc tính DataMember
-        public string DataMember
-        {
-            get { return dataMember; }
-            set
+            else
             {
-                if (dataMember != value)
+                btnSize = itemWidth - 10;
+            }
+            foreach (Control control in pnChatList.Controls)
+            {
+                if (control is ChatListItem chatItem)
                 {
-                    dataMember = value;
-                    // Gọi phương thức BindData để hiển thị dữ liệu lên các item
-                    BindData();
-                    // Nếu có sự kiện DataSourceChanged thì gọi nó
-                    if (DataSourceChanged != null)
-                    {
-                        DataSourceChanged(this, EventArgs.Empty);
-                    }
+                    chatItem.Width = btnSize;
                 }
             }
         }
@@ -72,73 +86,104 @@ namespace chat_app.Views.Controls
             }
         }
 
+        public int ItemHeight { get => itemHeight; set => itemHeight = value; }
+        public Color ItemBackColor { get => _itemBackColor; set => _itemBackColor = value; }
+        public Color ItemHoverColor { get => _itemHoverColor; set => _itemHoverColor = value; }
+
         private void BindingSource_ListChanged(object sender, ListChangedEventArgs e)
         {
-            BindData();
+            RefreshChatList();
+        }
+
+
+        private async Task<Image> GetImageFromFTP(string url)
+        {
+            Image image = null;
+            Task<Image> t1 = new Task<Image>(
+                () =>
+                {
+                    try
+                    {
+                        Image im = null;
+                        if (string.IsNullOrEmpty(url))
+                        {
+                            byte[] imageData;
+                            using (WebClient client = new WebClient())
+                            {
+                                client.Credentials = new NetworkCredential("username", "password");
+                                imageData = client.DownloadData(url);
+                            }
+
+                            // Convert the byte array to an Image
+                            using (MemoryStream ms = new MemoryStream(imageData))
+                            {
+                                im = Image.FromStream(ms);
+                            }
+                        }
+                        return im;
+
+                    }
+                    catch { return null; }
+                });
+            t1.Start();
+            image = await t1;
+            return image;
         }
 
         // Phương thức để hiển thị dữ liệu lên các item trong user control
-        private void BindData()
+        private async void RefreshChatList()
         {
             // Xóa tất cả các item cũ trong panel
-            flpChatList.Controls.Clear();
+            pnChatList.Controls.Clear();
 
             // Nếu không có dữ liệu hoặc tên cột hoặc thuộc tính thì thoát khỏi phương thức
             if (bindingSource == null || bindingSource.Count < 1) return;
 
             // Duyệt qua từng đối tượng trong danh sách dữ liệu
-            foreach (var item in bindingSource)
+            var chatList = bindingSource.DataSource as IEnumerable<ChatListModel>;
+            int y = 0;
+            foreach (var item in chatList)
             {
                 // Tạo một ChatItem mới để chứa thông tin của một item
                 ChatListItem chatListItem = new ChatListItem();
 
                 // Lấy giá trị của cột hoặc thuộc tính chứa thông tin của người chat bằng cách sử dụng reflection
-                object avatar = item.GetType().GetProperty("StrAvartar").GetValue(item);
-                if (avatar != null)
+                if (item.PartnerAvartar != null)
                 {
                     // Gán giá trị đó cho thuộc tính Avatar của ChatItem
-                    chatListItem.Avatar = avatar as Image;
+                    chatListItem.Image = await GetImageFromFTP(item.PartnerAvartar);
                 }
 
-                object name = item.GetType().GetProperty("StrNameStaff").GetValue(item);
-                if (name != null)
-                {
-                    // Gán giá trị đó cho thuộc tính Name của ChatItem
-                    chatListItem.UserName = name.ToString();
-                }
-
-                object message = item.GetType().GetProperty("StrContent").GetValue(item);
-                if (message != null)
-                {
-                    // Gán giá trị đó cho thuộc tính Message của ChatItem
-                    chatListItem.Message = message.ToString();
-                }
-
-                object time = item.GetType().GetProperty("TimeSend").GetValue(item);
-                if (time != null)
-                {
-                    // Gán giá trị đó cho thuộc tính Time của ChatItem
-                    chatListItem.Time = (DateTime)time;
-                }
+                chatListItem.FillColor = Color.FromArgb(240,240,240);
+                chatListItem.Text = item.PartnerName;
+                chatListItem.LastMessage = item.LastMessage;
+                chatListItem.LastChatTime = item.TimeSend;
+                chatListItem.Image = Properties.Resources.avatar11;
                 chatListItem.Tag = item;
-                chatListItem.Height = 50;
-                chatListItem.Width = flpChatList.Width - 10 - scrWidth;
-                chatListItem.Margin = new Padding(5);
+
+                chatListItem.Height = ItemHeight;
+                chatListItem.Width = itemWidth -10;
+                chatListItem.Location = new Point(5, y);
+
 
                 // Thêm ChatItem vào panel chính
-                flpChatList.Controls.Add(chatListItem);
+                pnChatList.Controls.Add(chatListItem);
+                y += itemHeight;
 
                 // Thêm sự kiện Click cho ChatItem để thông báo khi người dùng nhấn vào nó
                 chatListItem.Click += (sender, e) =>
                 {
-                    object clickedChatItem = (sender as ChatListItem).Tag;
+                    if (_lastClickItem != null) { _lastClickItem.Checked = false; }
+                    var clickItem = sender as ChatListItem;
+                    clickItem.Checked = true;
+                    _lastClickItem = clickItem;
+
+                    object clickedChatItem = clickItem.Tag;
                     // Nếu có sự kiện ItemClicked thì gọi nó và truyền vào đối tượng dữ liệu tương ứng với ChatItem
-                    if (ItemClicked != null)
-                    {
-                        ItemClicked(clickedChatItem, EventArgs.Empty);
-                    }
+                    ItemClicked?.Invoke(clickedChatItem, e);
                 };
             }
+            ChangeItemSize();
         }
     }
 }

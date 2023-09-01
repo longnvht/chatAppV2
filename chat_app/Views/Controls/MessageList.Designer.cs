@@ -1,8 +1,6 @@
-﻿using System.Windows.Forms;
-
-namespace chat_app.Views.Controls
+﻿namespace chat_app.Views.Controls
 {
-    partial class ChatListItem
+    partial class MessageList
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,10 +28,9 @@ namespace chat_app.Views.Controls
         /// </summary>
         private void InitializeComponent()
         {
-
+            components = new System.ComponentModel.Container();
         }
 
         #endregion
     }
 }
-

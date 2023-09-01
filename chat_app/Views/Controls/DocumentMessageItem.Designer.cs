@@ -1,9 +1,6 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
-
-namespace chat_app.Views.Controls
+﻿namespace chat_app.Views.Controls
 {
-    partial class ChatList
+    partial class DocumentMessageItem
     {
         /// <summary> 
         /// Required designer variable.
@@ -31,31 +28,10 @@ namespace chat_app.Views.Controls
         /// </summary>
         private void InitializeComponent()
         {
-            this.pnChatList = new System.Windows.Forms.Panel();
-            this.SuspendLayout();
-            // 
-            // pnChatList
-            // 
-            this.pnChatList.AutoScroll = true;
-            this.pnChatList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnChatList.Location = new System.Drawing.Point(0, 0);
-            this.pnChatList.Name = "pnChatList";
-            this.pnChatList.Size = new System.Drawing.Size(185, 134);
-            this.pnChatList.TabIndex = 0;
-            // 
-            // ChatList
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.pnChatList);
-            this.Name = "ChatList";
-            this.Size = new System.Drawing.Size(185, 134);
-            this.ResumeLayout(false);
-
         }
 
         #endregion
-
-        private Panel pnChatList;
     }
 }

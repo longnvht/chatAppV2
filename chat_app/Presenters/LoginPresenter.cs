@@ -92,7 +92,6 @@ namespace chat_app.Presenters
                             () =>
                             {
                                 var chatPresenter = ConfigUnity.unityContainer.Resolve<ChatPresenter>();
-                                chatPresenter.Run();
                             }));
 
                     t.Start();

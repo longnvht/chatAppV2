@@ -1,326 +1,142 @@
 ﻿using chat_app.Models;
+using chat_app.Models.Interfaces;
+using chat_app.Presenters;
+using chat_app.Repositorys;
 using chat_app.Views.Interfaces;
 using Guna.UI2.WinForms;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using ChatList = chat_app.Models.ChatList;
+using Unity;
+using ChatList = chat_app.Models.ChatListModel;
 
 namespace chat_app
 {
     public partial class ChatView : Form, IChatView
     {
+        private int _minHeightTextBox = 40;
+        private int _maxHeightTextBox = 200;
+        private ChatListModel  _currentChatList;
+
         public ChatView()
         {
             InitializeComponent();
-            this.Load += delegate { ChatView_Load?.Invoke(this, EventArgs.Empty); };
-            _btnSend.Click += delegate { btnSend_Click?.Invoke(this, EventArgs.Empty); };
-            this.Resize += delegate { ChatView_Resize?.Invoke(this, EventArgs.Empty); };
-            _txtMessage.TextChanged += delegate { txtMessage_TextChanged?.Invoke(this, EventArgs.Empty); };
-            _chatList.ItemClicked += (s, e) =>
-            {
-                itemChatList_Click?.Invoke(s, e);
-            };
-            _btnAddMember.Click += (s, e) =>
-            {
-                _btnSelect.Enabled = false;
-                _btnAddMember.Enabled = false;
-                typeBtnSelect = 1;
-                btnAddMember_Click?.Invoke(this, EventArgs.Empty);
-            };
-            _btnDeleteMember.Click += (s, e) =>
-            {
-                if (listMembers.Count <= 3)
-                {
-                    MessageBox.Show("Số lượng thành viên đã đạt mức tối thiểu, không thể xóa!");
-                }
-                else
-                {
-                    _btnDeleteMember.Enabled = false;
-                    btnDeleteMember_Click?.Invoke(this, EventArgs.Empty);
-                }
-            };
-            _lsbMembers.SelectedIndexChanged += (s, e) =>
-            {
-                if (_lsbMembers.SelectedIndex != -1)
-                {
-                    _btnDeleteMember.Enabled = true;
-                }
-                else
-                {
-                    _btnDeleteMember.Enabled = false;
-                }
-            };
-            _btnSelect.Click += (s, e) =>
-            {
-                _txtSearchMember.Text = string.Empty;
-                _grbMembers.Visible = false;
-                if (typeBtnSelect == 0)
-                {
-                    SelectNewChat();
-                }
-                else
-                {
-                    SelectMemberGroup();
-                }
-                btnSelect_Click?.Invoke(this, EventArgs.Empty);
-            };
-            _btnCancel.Click += delegate { btnCancel_Click?.Invoke(this, EventArgs.Empty); };
-            _lsMembers.ItemClick += (s, e) =>
-            {
-                Users user = _lsMembers.DataSource.Current as Users;
-                if (user != null)
-                {
-                    _btnSelect.Enabled = true;
-                    memberID = user.iID;
-                    memberName = user.strNameStaff;
-                }
-            };
-            _txtSearchMember.TextChanged += delegate { txtSearchMember_TextChanged?.Invoke(this, EventArgs.Empty); };
-            _txtNewChat.Click += (s, e) =>
-            {
-                _btnSelect.Enabled = false;
-                typeBtnSelect = 0;
-                txtNewChat_Click?.Invoke(this, EventArgs.Empty);
-            };
+            AssignEvent();
         }
 
-        #region Properties - Fields
-        public Guna2TextBox txtMessage { get => _txtMessage; set => _txtMessage = value; }
-        public BindingList<HistoriesChat> lstContent { get; set; }
-        public string strUserLogin { get; set; }
-        public string strNameStaff { get; set; }
-        public int UserLoginID { get; set; }
-        public int ReceiverID { get; set; }
-        public int TypeChat { get; set; }
-        public Panel pnChat { get => _pnChat; set => _pnChat = value; }
-        public char statusForm { get; set; }
-        public ListBox lsbMembers { get => _lsbMembers; set => _lsbMembers = value; }
-        public int memberID { get; set; }
-        public string memberName { get; set; }
-        public BindingList<ChatList> listMembers { get; set; }
-        public Guna2TextBox txtNameChat { get => _txtNameChat; set => _txtNameChat = value; }
-        public Guna2TextBox txtSearchMember { get => _txtSearchMember; set => _txtSearchMember = value; }
-        public int typeBtnSelect { get; set; }
-        #endregion
-
-        #region Events
-        public event EventHandler ChatView_Load;
-        public event EventHandler btnSend_Click;
-        public event EventHandler ChatView_Resize;
-        public event EventHandler txtMessage_TextChanged;
-        public event EventHandler itemChatList_Click;
-        public event EventHandler btnAddMember_Click;
-        public event EventHandler btnDeleteMember_Click;
-        public event EventHandler btnSelect_Click;
-        public event EventHandler btnCancel_Click;
-        public event EventHandler txtSearchMember_TextChanged;
-        public event EventHandler txtNewChat_Click;
-        #endregion
-
-        #region Methods
-
-        /* Code cũ
-        public Guna2GradientButton CreateButton(int? iIndex = null)
+        private void AssignEvent()
         {
-            Guna2GradientButton btn = new Guna2GradientButton
+            this.Load += ChatView_Load;
+            chatListControl.ItemClicked += (s, e) => 
             {
-                Animated = true,
-                BorderRadius = 10
+                CurrentChatList = s as ChatListModel;
             };
-            btn.BorderThickness = 1;
-            btn.BorderColor = System.Drawing.Color.FromArgb(70, 71, 117);
-            btn.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            btn.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            btn.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(149)))), ((int)(((byte)(173)))));
-            btn.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(149)))), ((int)(((byte)(173)))));
-            btn.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            btn.FillColor = System.Drawing.Color.WhiteSmoke;
-            btn.FillColor2 = System.Drawing.Color.WhiteSmoke;
-            btn.CheckedState.FillColor = System.Drawing.Color.FromArgb(238, 238, 255);
-            btn.CheckedState.FillColor2 = System.Drawing.Color.FromArgb(148, 111, 207);
-            btn.Font = new System.Drawing.Font("Segoe UI", 8F);
-            btn.ForeColor = System.Drawing.Color.FromArgb(0, 0, 64);
-            btn.Margin = new System.Windows.Forms.Padding(5);
-            btn.Location = new System.Drawing.Point(3, 3);
-            btn.Size = new System.Drawing.Size(200, 50);
-
-            // Tạo thành viên
-            //if (_tclChat.SelectedIndex == 0)
-            //{
-            if (iIndex != null)
+            _txtMessage.KeyDown += (s, e) =>
             {
-                btn.Tag = this.lstUsers.Values.ElementAt(iIndex.Value).Keys.ElementAt(0);
+                if (e.KeyCode == Keys.Enter && e.Shift)
+                {
+                    return;
+                }
+                else if (e.KeyCode == Keys.Enter)
+                {
+                    if (!String.IsNullOrEmpty(_txtMessage.Text))
+                    {
+                        AddMessage?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+            };
+            btnSend.Click += (s, e) =>
+            {
+                if (!String.IsNullOrEmpty(_txtMessage.Text))
+                {
+                    AddMessage?.Invoke(this, EventArgs.Empty);
+                }
+            };
 
-                string strUserLogin = this.lstUsers.Values.ElementAt(iIndex.Value).Keys.ElementAt(0);
-                string strNameStaff = this.lstUsers.Values.ElementAt(iIndex.Value).Values.ElementAt(0);
-                btn.Text = strUserLogin + "\r\n" + strNameStaff;
+            _txtMessage.TextChanged += ResizeMesageTextBox;
+        }
+
+        private void ResizeMesageTextBox(object sender, EventArgs e)
+        {
+            var text = _txtMessage.Text;
+            int maxWidth = _txtMessage.Width - _txtMessage.Margin.Left - _txtMessage.Margin.Right;
+            var textSize = TextRenderer.MeasureText(text, _txtMessage.Font, new Size(maxWidth, 0), TextFormatFlags.WordBreak);
+            int newHeight = textSize.Height + _txtMessage.Margin.Top + _txtMessage.Margin.Bottom + 10;
+            if (newHeight <= _minHeightTextBox)
+            {
+                pnMoreAction.Height = _minHeightTextBox + 40;
+                _txtMessage.Height = _minHeightTextBox;
+                _txtMessage.ScrollBars = ScrollBars.None;
             }
-            btn.Click += (s, e) => { btnflpUser_Click?.Invoke(s, e); };
-            //}
-            //else if (_tclChat.SelectedIndex == 1) // Tạo nhóm
-            //{
-            //if (iIndex != null)
-            //{
-            //    btn.Tag = this.lstGroups.Keys.ElementAt(iIndex.Value);
-
-            //    string strGroupID = this.lstGroups.Keys.ElementAt(iIndex.Value).ToString();
-            //    string strGroupName = this.lstGroups.Values.ElementAt(iIndex.Value);
-            //    btn.Text = strGroupID + "\r\n" + strGroupName;
-            //}
-            //btn.Click += (s, e) => { btnflpGroup_Click?.Invoke(s, e); };
-            //}
-            return btn;
-        }
-
-        public Guna2TextBox CreateTextBox(string strUserLoginFrom = "", string strContent = "")
-        {
-            Guna2TextBox tb = new Guna2TextBox
+            else if (newHeight > _minHeightTextBox & newHeight <= _maxHeightTextBox)
             {
-                Animated = true,
-                BorderRadius = 10
-            };
-            var strContentLeght = strContent.Length;
-            tb.ReadOnly = true;
-            tb.Font = new System.Drawing.Font("Segoe UI", 8F);
-            tb.Multiline = true;
-            tb.Dock = DockStyle.Top;
-            tb.Text = strContent;
-            if (strUserLoginFrom == this.strUserLogin)
-            {
-                tb.TextAlign = HorizontalAlignment.Right;
+                pnMoreAction.Height = newHeight + 40;
+                _txtMessage.Height = newHeight;
+                _txtMessage.ScrollBars = ScrollBars.None;
             }
             else
             {
-                tb.TextAlign = HorizontalAlignment.Left;
+                _txtMessage.AutoScroll = true;
+                _txtMessage.ScrollBars = ScrollBars.Vertical;
             }
-            return tb;
+
+
+
         }
 
-        public void SetCheckedButton()
+        private void ChatView_Load(object sender, EventArgs e)
         {
-            // Set checked User
-            if (_tclChat.SelectedIndex == 0)
+            ChatRepository repository = ConfigUnity.unityContainer.Resolve<ChatRepository>();
+            Presenter = new ChatPresenter(this, repository);
+            messageListControl.SenderID = 9;
+            CurrentChatList = null;
+        }
+
+        public ChatListModel CurrentChatList 
+        { 
+            get => _currentChatList;
+            set
             {
-                if (_flpListUser.Controls.Count > 0)
+                _currentChatList = value;
+                if (_currentChatList != null)
                 {
-                    foreach (Control item in _flpListUser.Controls)
-                    {
-                        Guna2GradientButton btn = (Guna2GradientButton)item;
-                        if ((item.GetType() != typeof(Guna2GradientButton)))
-                        {
-                            continue;
-                        }
-                        if (btn.Checked)
-                        {
-                            btn.Checked = false;
-                            return;
-                        }
-                    }
+                    lblChatName.Text = _currentChatList.PartnerName;
+                    ChatItemSelected?.Invoke(this, EventArgs.Empty);
+                    _txtMessage.Enabled = true;
+                    MessageText = "";
                 }
-            }
-            else if (_tclChat.SelectedIndex == 1) // Set cheked nhóm
-            {
-                if (_flpListGroup.Controls.Count > 0)
-                {
-                    foreach (Control item in _flpListGroup.Controls)
-                    {
-                        Guna2GradientButton btn = (Guna2GradientButton)item;
-                        if ((item.GetType() != typeof(Guna2GradientButton)))
-                        {
-                            continue;
-                        }
-                        if (btn.Checked)
-                        {
-                            btn.Checked = false;
-                            return;
-                        }
-                    }
-                }
+                else _txtMessage.Enabled = false;
             }
         }
-        */
+        public string CurrentMessage { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public List<Users> MemberGroup { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ChatPresenter Presenter { private get; set; }
+        public string MessageText { get => _txtMessage.Text; set => _txtMessage.Text = value; }
 
-        public void SetDataSourceChatList(BindingSource chatListBidingSource)
+        public event EventHandler ChatItemSelected;
+        public event EventHandler AddMessage;
+        public event EventHandler AddChatGroup;
+        public event EventHandler AddMemberToGroup;
+        public event EventHandler RemoveMemberFromGroup;
+
+
+
+        public void SetChatListBindingSource(BindingSource chatListBidingSource)
         {
-            _chatList.DataSource = chatListBidingSource;
+            chatListControl.DataSource = chatListBidingSource;
         }
 
-        public void SetDataSourceListMembers(BindingSource listMembersBidingSource)
+        public void SetListMembersBindingSource(BindingSource listMembersBidingSource)
         {
-            _lsMembers.DataSource = listMembersBidingSource;
         }
 
-        public void SetStatusForm()
+        public void SetMessageListBindingSource(BindingSource mesageSource)
         {
-            switch (statusForm)
-            {
-                case '1':
-                    _pnDetail.Visible = true;
-                    _pnDetail.Dock = DockStyle.Right;
-                    _pnDetail.SendToBack();
-                    if (TypeChat == 0)
-                    {
-                        _btnDeleteMember.Enabled = false;
-                    }
-                    else
-                    {
-                        _btnDeleteMember.Enabled = true;
-                    }
-                    break;
-                case '2':
-                    _grbMembers.Visible = true;
-                    _grbMembers.Dock = DockStyle.Right;
-                    break;
-                case '3':
-                    _grbMembers.Visible = false;
-                    break;
-            }
+            messageListControl.MessageSource = mesageSource;
         }
 
-        private void SelectMemberGroup()
-        {
-            _btnAddMember.Enabled = true;
-            ChatList dataMember = new ChatList
-            {
-                Id = memberID,
-                StrNameStaff = memberName
-            };
-
-            if (!listMembers.Any(item => item.Id == dataMember.Id))
-            {
-                listMembers.Add(dataMember);
-            }
-            else
-            {
-                MessageBox.Show("Thành viên đã tồn tại trong nhóm!");
-                return;
-            }
-            _txtNameChat.Text = string.Empty;
-            if (string.IsNullOrEmpty(_txtNameChat.Text) || string.IsNullOrWhiteSpace(_txtNameChat.Text))
-            {
-                _txtNameChat.Text = string.Empty;
-                foreach (var item in listMembers)
-                {
-                    _txtNameChat.Text += item.StrNameStaff + ", ";
-                }
-                if (!string.IsNullOrEmpty(_txtNameChat.Text))
-                {
-                    char[] trimChars = { ',', ' ' };
-                    _txtNameChat.Text = _txtNameChat.Text.TrimEnd(trimChars);
-                }
-            }
-        }
-
-        private void SelectNewChat()
-        {
-            ChatList dataMember = new ChatList
-            {
-                Id = memberID,
-                StrNameStaff = memberName
-            };
-        }
-        #endregion
     }
 }

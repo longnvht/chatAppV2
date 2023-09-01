@@ -215,9 +215,9 @@ namespace chat_app.Repositorys
             }
         }
 
-        public async Task<IEnumerable<HistoriesChat>> GetContent(int SenderID, int ReceiverID)
+        public async Task<IEnumerable<MessageItemModel>> GetMessageLists(int SenderID, int ReceiverID)
         {
-            BindingList<HistoriesChat> lstContent = null;
+            BindingList<MessageItemModel> lstContent = null;
 
             string strQueryProcedure = @"GetContent";
             _log.Info("Store procedure query get content in table HistoriesChat: " + strQueryProcedure);
@@ -248,13 +248,13 @@ namespace chat_app.Repositorys
                         {
                             if (lstContent == null)
                             {
-                                lstContent = new BindingList<HistoriesChat>();
+                                lstContent = new BindingList<MessageItemModel>();
                             }
 
-                            HistoriesChat historiesChat = null;
+                            MessageItemModel historiesChat = null;
                             while (await mySqlDataReader.ReadAsync())
                             {
-                                historiesChat = new HistoriesChat();
+                                historiesChat = new MessageItemModel();
 
                                 if (historiesChat != null)
                                 {
@@ -265,12 +265,12 @@ namespace chat_app.Repositorys
 
                                     if (!await mySqlDataReader.IsDBNullAsync(1)) // Content
                                     {
-                                        historiesChat.StrContent = mySqlDataReader["Content"].ToString();
+                                        historiesChat.MessageContent = mySqlDataReader["Content"].ToString();
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(2)) // TimeSend
                                     {
-                                        historiesChat.DtTimeSend = Convert.ToDateTime(mySqlDataReader["TimeSend"]);
+                                        historiesChat.SendDate = Convert.ToDateTime(mySqlDataReader["TimeSend"]);
                                     }
                                 }
                                 lstContent.Add(historiesChat);
@@ -603,9 +603,9 @@ namespace chat_app.Repositorys
 
         // Từ chỗ này là code viết mới
 
-        public async Task<IEnumerable<ChatList>> GetListChat(int strUserLogin)
+        public async Task<IEnumerable<ChatListModel>> GetListChats(int strUserLogin)
         {
-            BindingList<ChatList> lstChat = null;
+            BindingList<ChatListModel> lstChat = null;
 
             string strQueryProcedure = @"GetListChat";
             _log.Info("Store procedure query get content in table HistoriesChat: " + strQueryProcedure);
@@ -630,34 +630,34 @@ namespace chat_app.Repositorys
                         {
                             if (lstChat == null)
                             {
-                                lstChat = new BindingList<ChatList>();
+                                lstChat = new BindingList<ChatListModel>();
                             }
 
-                            ChatList users = null;
+                            ChatListModel users = null;
                             while (await mySqlDataReader.ReadAsync())
                             {
-                                users = new ChatList();
+                                users = new ChatListModel();
 
                                 if (users != null)
                                 {
                                     if (!await mySqlDataReader.IsDBNullAsync(0)) // ID
                                     {
-                                        users.Id = Convert.ToInt32(mySqlDataReader["ID"]);
+                                        users.PartnerID = Convert.ToInt32(mySqlDataReader["ID"]);
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(1)) // NameStaff
                                     {
-                                        users.StrNameStaff = mySqlDataReader["NameStaff"].ToString();
+                                        users.PartnerName = mySqlDataReader["NameStaff"].ToString();
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(2)) // Avartar
                                     {
-                                        users.StrAvartar = mySqlDataReader["Avartar"].ToString();
+                                        users.PartnerAvartar = mySqlDataReader["Avartar"].ToString();
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(3)) // Content
                                     {
-                                        users.StrContent = mySqlDataReader["Content"].ToString();
+                                        users.LastMessage = mySqlDataReader["Content"].ToString();
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(4)) // TypeChat
@@ -691,9 +691,9 @@ namespace chat_app.Repositorys
             return null;
         }
 
-        public async Task<BindingList<ChatList>> GetChatMembers(int senderID, int receiverID)
+        public async Task<BindingList<ChatListModel>> GetChatMembers(int senderID, int receiverID)
         {
-            BindingList<ChatList> lstChat = null;
+            BindingList<ChatListModel> lstChat = null;
 
             string strQueryProcedure = @"GetChatMembers";
             _log.Info("Store procedure query get ID and Name in table Users: " + strQueryProcedure);
@@ -724,24 +724,24 @@ namespace chat_app.Repositorys
                         {
                             if (lstChat == null)
                             {
-                                lstChat = new BindingList<ChatList>();
+                                lstChat = new BindingList<ChatListModel>();
                             }
 
-                            ChatList users = null;
+                            ChatListModel users = null;
                             while (await mySqlDataReader.ReadAsync())
                             {
-                                users = new ChatList();
+                                users = new ChatListModel();
 
                                 if (users != null)
                                 {
                                     if (!await mySqlDataReader.IsDBNullAsync(0)) // ID
                                     {
-                                        users.Id = Convert.ToInt32(mySqlDataReader["ID"]);
+                                        users.PartnerID = Convert.ToInt32(mySqlDataReader["ID"]);
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(1)) // NameStaff
                                     {
-                                        users.StrNameStaff = mySqlDataReader["NameStaff"].ToString();
+                                        users.PartnerName = mySqlDataReader["NameStaff"].ToString();
                                     }
                                 }
                                 lstChat.Add(users);
@@ -765,9 +765,9 @@ namespace chat_app.Repositorys
             return null;
         }
 
-        public async Task<BindingList<ChatList>> GetGroupMembers(int groupID)
+        public async Task<BindingList<ChatListModel>> GetGroupMembers(int groupID)
         {
-            BindingList<ChatList> lstChat = null;
+            BindingList<ChatListModel> lstChat = null;
 
             string strQueryProcedure = @"GetGroupMembers";
             _log.Info("Store procedure query get ID and Name in table Users: " + strQueryProcedure);
@@ -792,24 +792,24 @@ namespace chat_app.Repositorys
                         {
                             if (lstChat == null)
                             {
-                                lstChat = new BindingList<ChatList>();
+                                lstChat = new BindingList<ChatListModel>();
                             }
 
-                            ChatList users = null;
+                            ChatListModel users = null;
                             while (await mySqlDataReader.ReadAsync())
                             {
-                                users = new ChatList();
+                                users = new ChatListModel();
 
                                 if (users != null)
                                 {
                                     if (!await mySqlDataReader.IsDBNullAsync(0)) // ID
                                     {
-                                        users.Id = Convert.ToInt32(mySqlDataReader["ID"]);
+                                        users.PartnerID = Convert.ToInt32(mySqlDataReader["ID"]);
                                     }
 
                                     if (!await mySqlDataReader.IsDBNullAsync(1)) // NameStaff
                                     {
-                                        users.StrNameStaff = mySqlDataReader["NameStaff"].ToString();
+                                        users.PartnerName = mySqlDataReader["NameStaff"].ToString();
                                     }
                                 }
                                 lstChat.Add(users);
