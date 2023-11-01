@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Management.Instrumentation;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -73,7 +74,16 @@ namespace chat_app.Views.Controls
             if (Image != null)
             {
                 System.Drawing.Point point = new System.Drawing.Point(5, (Height - ImageSize.Height)/2);
-                e.Graphics.DrawImage(Image, new Rectangle(point, ImageSize));
+                //e.Graphics.DrawImage(Image, new Rectangle(point, ImageSize));
+                Rectangle avatarRect = new Rectangle(point, ImageSize);
+                using (GraphicsPath path = new GraphicsPath())
+                {
+                    path.AddEllipse(avatarRect);
+                    e.Graphics.FillEllipse(Brushes.LightGray, avatarRect);
+                    e.Graphics.SetClip(path);
+                    e.Graphics.DrawImage(Image, avatarRect);
+                    e.Graphics.ResetClip();
+                }
             }
 
             using (Font timeFont = new Font("Arial", 8))
@@ -139,7 +149,7 @@ namespace chat_app.Views.Controls
                 int maxVisibleWidth = maxWidth - ellipsisWidth;
                 string truncatedText = text;
 
-                while (TextRenderer.MeasureText(truncatedText, font).Width > maxVisibleWidth && truncatedText.Length > 0)
+                while (TextRenderer.MeasureText(truncatedText, font).Width > maxVisibleWidth  && truncatedText.Length > 0)
                 {
                     truncatedText = truncatedText.Substring(0, truncatedText.Length - 1);
                 }

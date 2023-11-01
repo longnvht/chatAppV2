@@ -16,11 +16,11 @@ namespace chat_app.Views.Controls
     public partial class ChatList : UserControl
     {
         private BindingSource bindingSource;
-        private int itemWidth;
         private int itemHeight;
         private Color _itemBackColor;
         private Color _itemHoverColor;
         private ChatListItem _lastClickItem;
+        private Point _mouseDownPoint;
 
 
         // Khai báo một sự kiện để thông báo khi người dùng nhấn vào một item trong user control
@@ -28,52 +28,16 @@ namespace chat_app.Views.Controls
         public ChatList()
         {
             InitializeComponent();
-            AssignEvent();
+            this.AutoScroll = true;
             
         }
 
-        private void AssignEvent()
-        {
-            this.Load += ChatList_Load;
-            pnChatList.SizeChanged += ChatList_SizeChanged;
-        }
 
         private void ChatList_Load(object sender, EventArgs e)
         {
-            itemWidth = this.Width;
+            
         }
 
-        private void ChatList_SizeChanged(object sender, EventArgs e)
-        {
-            if(itemWidth != Width)
-            {
-                itemWidth = this.Width;
-                ChangeItemSize();
-            }
-        }
-
-        private void ChangeItemSize()
-        {
-
-            int btnSize; // Lưu kích thước gốc của pnMenu
-            bool isScrollBarVisible = pnChatList.VerticalScroll.Visible;
-
-            if (isScrollBarVisible)
-            {
-                btnSize = itemWidth - SystemInformation.VerticalScrollBarWidth -10;
-            }
-            else
-            {
-                btnSize = itemWidth - 10;
-            }
-            foreach (Control control in pnChatList.Controls)
-            {
-                if (control is ChatListItem chatItem)
-                {
-                    chatItem.Width = btnSize;
-                }
-            }
-        }
 
         // Lấy hoặc gán giá trị cho thuộc tính DataSource
         public BindingSource DataSource
@@ -134,13 +98,14 @@ namespace chat_app.Views.Controls
         private async void RefreshChatList()
         {
             // Xóa tất cả các item cũ trong panel
-            pnChatList.Controls.Clear();
+            Controls.Clear();
 
             // Nếu không có dữ liệu hoặc tên cột hoặc thuộc tính thì thoát khỏi phương thức
             if (bindingSource == null || bindingSource.Count < 1) return;
 
             // Duyệt qua từng đối tượng trong danh sách dữ liệu
             var chatList = bindingSource.DataSource as IEnumerable<ChatListModel>;
+            var itemWidth = this.Width;
             int y = 0;
             foreach (var item in chatList)
             {
@@ -164,11 +129,10 @@ namespace chat_app.Views.Controls
                 chatListItem.Height = ItemHeight;
                 chatListItem.Width = itemWidth -10;
                 chatListItem.Location = new Point(5, y);
+                chatListItem.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
 
-                // Thêm ChatItem vào panel chính
-                pnChatList.Controls.Add(chatListItem);
-                y += itemHeight;
+                
 
                 // Thêm sự kiện Click cho ChatItem để thông báo khi người dùng nhấn vào nó
                 chatListItem.Click += (sender, e) =>
@@ -182,8 +146,35 @@ namespace chat_app.Views.Controls
                     // Nếu có sự kiện ItemClicked thì gọi nó và truyền vào đối tượng dữ liệu tương ứng với ChatItem
                     ItemClicked?.Invoke(clickedChatItem, e);
                 };
+
+                chatListItem.MouseDown += ChatListItem_MouseDown;
+                chatListItem.MouseMove += ChatListItem_MouseMove;
+
+                // Thêm ChatItem vào panel chính
+                Controls.Add(chatListItem);
+                y += itemHeight;
             }
-            ChangeItemSize();
+        }
+
+        private void ChatListItem_MouseMove(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Left)
+            {
+                Point pointDefference = new Point(Cursor.Position.X + _mouseDownPoint.X, Cursor.Position.Y - _mouseDownPoint.Y);
+                if ((_mouseDownPoint.X == Cursor.Position.X) && (_mouseDownPoint.Y == Cursor.Position.Y))
+                    return;
+                Point currAutos = this.AutoScrollPosition;
+                this.AutoScrollPosition = new Point(Math.Abs(currAutos.X) - pointDefference.X, Math.Abs(currAutos.Y) - pointDefference.Y);
+                _mouseDownPoint = Cursor.Position;
+            }
+        }
+
+        private void ChatListItem_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _mouseDownPoint = Cursor.Position;
+            }
         }
     }
 }

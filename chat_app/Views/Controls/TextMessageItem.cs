@@ -11,24 +11,12 @@ using System.Windows.Forms;
 
 namespace chat_app.Views.Controls
 {
-    public partial class TextMessageItem : UserControl
+    public partial class TextMessageItem : TextBox
     {
-        private string message;
         private int cornerRadius = 6; // Độ cong góc bo tròn
         private int padding = 10;
         private Color _fillColor = Color.White;
         private int _maxWidth =200;
-
-        public string Message
-        {
-            get { return message; }
-            set
-            {
-                message = value;
-                CalculateSize();
-                Invalidate(); // Trigger a redraw when the message changes
-            }
-        }
 
         public Color FillColor 
         { 
@@ -46,7 +34,16 @@ namespace chat_app.Views.Controls
         {
             InitializeComponent();
             DoubleBuffered = true;
+            this.Multiline = true;
+            this.ReadOnly = true;
             SizeChanged += MessageControl_SizeChanged;
+            TextChanged += TextMessageItem_TextChanged;
+        }
+
+        private void TextMessageItem_TextChanged(object sender, EventArgs e)
+        {
+            CalculateSize();
+            Invalidate();
         }
 
         private void MessageControl_SizeChanged(object sender, EventArgs e)
@@ -57,14 +54,14 @@ namespace chat_app.Views.Controls
 
         private void CalculateSize()
         {
-            if (!string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(Text))
             {
-                Size textSize = TextRenderer.MeasureText(message, Font);
+                Size textSize = TextRenderer.MeasureText(Text, Font);
 
                 if (textSize.Width >= MaxWidth)
                 {
                     Width = MaxWidth;
-                    Height = TextRenderer.MeasureText(message, Font, new Size(MaxWidth - 2 * padding, 0), TextFormatFlags.WordBreak).Height + 2 * padding;
+                    Height = TextRenderer.MeasureText(Text, Font, new Size(MaxWidth - 2 * padding, 0), TextFormatFlags.WordBreak).Height + 2 * padding;
                 }
                 else
                 {
@@ -84,10 +81,10 @@ namespace chat_app.Views.Controls
                 e.Graphics.FillPath(backgroundBrush, path);
             }
 
-            if (!string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(Text))
             {
                 Rectangle textRect = new Rectangle(padding, padding, Width - 2 * padding, Height - 2 * padding);
-                TextRenderer.DrawText(e.Graphics, message, Font, textRect, ForeColor, FillColor, TextFormatFlags.WordBreak);
+                TextRenderer.DrawText(e.Graphics, Text, Font, textRect, ForeColor, FillColor, TextFormatFlags.WordBreak);
             }
         }
 

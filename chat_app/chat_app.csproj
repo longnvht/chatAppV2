@@ -331,14 +331,14 @@
       <DependentUpon>ListButton.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\Controls\MessageList.cs">
-      <SubType>Component</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Views\Controls\MessageList.Designer.cs">
       <DependentUpon>MessageList.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\Controls\MessageType.cs" />
     <Compile Include="Views\Controls\TextMessageItem.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Views\Controls\TextMessageItem.Designer.cs">
       <DependentUpon>TextMessageItem.cs</DependentUpon>

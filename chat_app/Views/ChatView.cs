@@ -91,7 +91,7 @@ namespace chat_app
         {
             ChatRepository repository = ConfigUnity.unityContainer.Resolve<ChatRepository>();
             Presenter = new ChatPresenter(this, repository);
-            messageListControl.SenderID = 9;
+            messageControl.SenderID = 9;
             CurrentChatList = null;
         }
 
@@ -135,7 +135,7 @@ namespace chat_app
 
         public void SetMessageListBindingSource(BindingSource mesageSource)
         {
-            messageListControl.MessageSource = mesageSource;
+            messageControl.MessageSource = mesageSource;
         }
 
     }
